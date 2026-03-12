@@ -1,0 +1,41 @@
+version: "2"
+linters:
+  enable:
+    # https://zenn.dev/naotama/articles/consider-golang-linter
+    - bodyclose # http response が close されているかどうか確認
+    - containedctx # struct に Context を持たせないベストプラクティスを確認
+    - errcheck # [default] Go 1.13 で導入されたエラーラッピングで問題を起こすコードを確認
+    - errorlint # error チェックがされていないコードを確認
+    - gocritic # 多くのチェック項目を持つ linter
+    # - gosec # セキュリティ観点で様々な観点で確認
+    - govet # [default] 公式の go vet
+    - ineffassign # [default] 不要な代入が行われている箇所を確認
+    - misspell # スペルチェッカー
+    - nakedret # 長い関数における + naked return を確認
+    - paralleltest # t.Parallel() がついていないテストを確認
+    - rowserrcheck # database/sqlのRowsのエラーが正しく処理されているかを確認
+    - sqlclosecheck # sql.Rowsやsql.Stmtがcloseされてるかどうかを確認
+    - staticcheck # [default] 多くのチェック項目を持つ linter
+    - unconvert # 必要のない type 変換を確認
+    - unparam # 未使用引数を確認
+    - unused # 未使用変数/定数/関数/型を確認
+    - lll # スタイル
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: false
+    staticcheck:
+      checks:
+        - "all"
+        - "-ST1000" # package comment should be of the form
+        - "-ST1021" # comment on exported type StoreProfile should be of the form
+    lll:
+      line-length: 90
+formatters:
+  enable:
+    - goimports
+    - gofumpt
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/jakinikugon/arimon-backend
