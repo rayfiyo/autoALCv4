@@ -1,84 +1,46 @@
 package main
 
 import (
-	"context"
-	"errors"
 	"flag"
 	"fmt"
 	"os"
 
-	"github.com/rayfiyo/autoALCv4/internal/browser"
-	"github.com/rayfiyo/autoALCv4/internal/domain"
-	"github.com/rayfiyo/autoALCv4/utils"
+	"github.com/rayfiyo/autoALCv4/internal/usecase"
 )
 
 func main() {
-	var dotEnvPath string
-	var headless bool
-	var waitingTimeMS int
-	var userDataDir string
-
-	flag.StringVar(&dotEnvPath, "dot-env", ".env", "env ファイルのパス")
-	flag.BoolVar(&headless, "headless", true, "ヘッドレスモードの有効/無効")
-	flag.IntVar(&waitingTimeMS, "waiting-time", 1200, "各処理の待ち時間 [ミリ秒]")
-	flag.IntVar(&waitingTimeMS, "wt", 1200, "各処理の待ち時間 [ミリ秒]")
-	flag.StringVar(&userDataDir, "user-data-dir", "", "Chrome ユーザーデータディレクトリ")
-	flag.Parse()
-
-	creds, err := loadCredentials(dotEnvPath)
+	input, err := parseRunInput(os.Args[1:])
 	if err != nil {
 		exitWithError(err)
 	}
 
-	chromeDir, err := utils.ResolveChromeUserDataDir(userDataDir)
-	if err != nil {
-		exitWithError(
-			fmt.Errorf("chrome ユーザーデータディレクトリ解決に失敗した: %w", err),
-		)
-	}
-
-	loginCfg := browser.LoginConfig{
-		Headless:      headless,
-		WaitingTimeMS: waitingTimeMS,
-		UserDataDir:   chromeDir,
-	}
-	if err := browser.Login(context.Background(), creds, loginCfg); err != nil {
+	if err := usecase.Run(input); err != nil {
 		exitWithError(err)
 	}
 }
 
-func loadCredentials(dotEnvPath string) (domain.Credentials, error) {
-	id := os.Getenv("ID")
-	password := os.Getenv("PASSWORD")
-
-	if id != "" && password != "" {
-		return domain.NewCredentials(id, password)
+func parseRunInput(args []string) (usecase.RunInput, error) {
+	input := usecase.RunInput{
+		DotEnvPath:    ".env",
+		Headless:      true,
+		WaitingTimeMS: 1200,
 	}
 
-	envMap, err := utils.LoadDotEnv(dotEnvPath)
-	if err != nil {
-		return domain.Credentials{},
-			fmt.Errorf("環境変数と env ファイルからクレデンシャルを取得できない: %w", err)
-	}
+	fs := flag.NewFlagSet("autoALCv4", flag.ContinueOnError)
+	fs.SetOutput(os.Stderr)
+	fs.StringVar(&input.DotEnvPath, "dot-env", input.DotEnvPath, "env ファイルのパス")
+	fs.BoolVar(&input.Headless, "headless", input.Headless, "ヘッドレスモードの有効/無効")
+	fs.IntVar(&input.WaitingTimeMS,
+		"waiting-time", input.WaitingTimeMS, "各処理の待ち時間 [ミリ秒]")
+	fs.IntVar(&input.WaitingTimeMS,
+		"wt", input.WaitingTimeMS, "各処理の待ち時間 [ミリ秒]")
+	fs.StringVar(&input.UserDataDir,
+		"user-data-dir", "", "Chrome ユーザーデータディレクトリ")
 
-	if id == "" {
-		id = envMap["ID"]
+	if err := fs.Parse(args); err != nil {
+		return usecase.RunInput{}, fmt.Errorf("フラグ解析に失敗した: %w", err)
 	}
-	if password == "" {
-		password = envMap["PASSWORD"]
-	}
-
-	creds, credErr := domain.NewCredentials(id, password)
-	if credErr != nil {
-		if errors.Is(credErr, domain.ErrInvalidID) ||
-			errors.Is(credErr, domain.ErrInvalidPassword) {
-			return domain.Credentials{},
-				fmt.Errorf("クレデンシャルが不正である: %w", credErr)
-		}
-		return domain.Credentials{}, credErr
-	}
-
-	return creds, nil
+	return input, nil
 }
 
 func exitWithError(err error) {
