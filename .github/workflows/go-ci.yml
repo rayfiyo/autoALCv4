@@ -1,0 +1,39 @@
+name: Go-CI
+on:
+  pull_request:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Install format tools
+        run: |
+          go install mvdan.cc/gofumpt@latest
+          go install golang.org/x/tools/cmd/goimports@latest
+      - name: Check gofumpt (fail if diff)
+        run: |
+          set -eu
+          gofumpt -w .
+          git diff --exit-code # gofumpt は書き換えるので、差分検出用に diff を取る
+      - name: Check goimports (fail if diff)
+        run: |
+          set -eu
+          goimports -w . # -w で書き換えて、差分が出たら失敗
+          git diff --exit-code
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.10.1
+          args: --timeout=6m
