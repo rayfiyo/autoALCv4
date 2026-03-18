@@ -12,7 +12,9 @@ func LoadDotEnv(path string) (map[string]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("env ファイルを開けない: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	values := make(map[string]string)
 	scanner := bufio.NewScanner(file)

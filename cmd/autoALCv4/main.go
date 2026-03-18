@@ -33,7 +33,7 @@ func main() {
 	chromeDir, err := utils.ResolveChromeUserDataDir(userDataDir)
 	if err != nil {
 		exitWithError(
-			fmt.Errorf("Chrome ユーザーデータディレクトリ解決に失敗した: %w", err),
+			fmt.Errorf("chrome ユーザーデータディレクトリ解決に失敗した: %w", err),
 		)
 	}
 
