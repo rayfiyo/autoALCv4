@@ -27,4 +27,17 @@
   - デフォルト: 1200
 - `user-data-dir`: Chrome のユーザーデータディレクトリ
   - デフォルト: 空文字列
-    - 空文字列の場合、`$HOME/.cache/chrome-user-data` になる
+  - プログラムの処理によって、空文字列の場合 `$HOME/.cache/chrome-user-data` を利用する
+- `course-id`: 処理対象のコースを指定する
+  - デフォルト: `GRM`
+  - 指定されたコース ID から、対応するコースが選択される
+    - 選択可能な値: `GRM`, `PWH`, `TC1`, `TC2`, `TC3`, `TCV`
+  - フラグの説明には以下のコース一覧を表示する（ヘルプや無効な値の場合に表示）
+    ```
+    GRM: 基礎からの英文法トレーニングコース
+    PWH: PowerWords Hybridコース
+    TC1: TOEIC(R) L&R テスト 500点突破コース
+    TC2: TOEIC(R) L&R テスト 600点突破コース
+    TC3: TOEIC(R) L&R テスト 730点突破コース
+    TCV: 英単語パワーアップコース TOEIC(R)テスト編
+    ```
